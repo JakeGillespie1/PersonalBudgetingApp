@@ -1,0 +1,24 @@
+budgeting-app/
+├── package.json (root)
+├── backend/
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── src/
+│   │   ├── index.ts
+│   │   ├── models/
+│   │   ├── routes/
+│   │   └── config/
+│   └── firebase-config.json
+├── frontend/
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── public/
+│   └── src/
+│       ├── components/
+│       ├── types/
+│       ├── services/
+│       └── App.tsx
+└── README.md
+
+TestEmail: Jake@gmail.com
+TestCred: Jake1234567890!

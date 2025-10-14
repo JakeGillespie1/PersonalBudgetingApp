@@ -45,14 +45,33 @@ const Login: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
       <Paper sx={{ p: 4, width: 400 }}>
-        <Typography variant="h5" gutterBottom>Sign in</Typography>
+        <Typography variant="h5" gutterBottom>Welcome to Budget Tracker</Typography>
         <Stack spacing={2}>
           <TextField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} fullWidth />
           <TextField label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} fullWidth />
           {error && <Typography color="error" variant="body2">{error}</Typography>}
-          <Button variant="contained" onClick={handleLogin} disabled={loading}>Sign in</Button>
-          <Button variant="outlined" onClick={handleRegister} disabled={loading}>Create account</Button>
-          <Button onClick={handleAnon} disabled={loading}>Continue as guest</Button>
+          <Button variant="contained" onClick={handleLogin} disabled={loading || !email || !password}>
+            Sign in
+          </Button>
+          <Button variant="outlined" onClick={handleRegister} disabled={loading || !email || !password}>
+            Create account
+          </Button>
+          <Box sx={{ textAlign: 'center', py: 2 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Want to explore first?
+            </Typography>
+            <Button 
+              variant="text" 
+              onClick={handleAnon} 
+              disabled={loading}
+              sx={{ textDecoration: 'underline' }}
+            >
+              Continue as guest
+            </Button>
+            <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
+              Guest data will be lost when you close the browser
+            </Typography>
+          </Box>
         </Stack>
       </Paper>
     </Box>

@@ -5,6 +5,7 @@ import { Container, AppBar, Toolbar, Typography, Tabs, Tab, Box, Button } from '
 import MonthlyBudget from './components/MonthlyBudget';
 import YearlySummary from './components/YearlySummary';
 import Login from './components/Login';
+import GuestWarning from './components/GuestWarning';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { MonthlyBudget as MonthlyBudgetType } from './types/budget';
 
@@ -48,7 +49,7 @@ function TabPanel(props: TabPanelProps) {
 function AppContent() {
   const [currentTab, setCurrentTab] = useState(0);
   const [currentBudget, setCurrentBudget] = useState<MonthlyBudgetType | null>(null);
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, isGuest } = useAuth();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
@@ -70,12 +71,18 @@ function AppContent() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Personal Budgeting App
           </Typography>
-          <Typography variant="body2" sx={{ mr: 2 }}>{user.email || 'Guest'}</Typography>
-          <Button color="inherit" onClick={signOut}>Sign out</Button>
+          <Typography variant="body2" sx={{ mr: 2 }}>
+            {isGuest ? 'Guest User' : (user.email || 'User')}
+          </Typography>
+          <Button color="inherit" onClick={signOut}>
+            {isGuest ? 'Exit Guest Mode' : 'Sign out'}
+          </Button>
         </Toolbar>
       </AppBar>
       
       <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <GuestWarning />
+        
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={currentTab} onChange={handleTabChange} aria-label="budget tabs">
             <Tab label="Monthly Budget" />

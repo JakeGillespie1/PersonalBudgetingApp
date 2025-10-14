@@ -108,3 +108,21 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Deployment and production files
+.env.production
+.env.development
+frontend/.env.production
+frontend/.env.development
+backend/.env.production
+backend/.env.development
+
+# Deployment configuration templates (keep examples, ignore actual configs)
+# Note: Keep these files in git as they are templates:
+# - backend/production-env-template.txt
+# - frontend/env.production.example
+# - frontend/env.development.example
+# - DEPLOYMENT_GUIDE.md
+# - render.yaml
+# - firebase.json
+# - .firebaserc

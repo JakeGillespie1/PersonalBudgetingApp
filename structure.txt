@@ -19,6 +19,3 @@ budgeting-app/
 │       ├── services/
 │       └── App.tsx
 └── README.md
-
-TestEmail: Jake@gmail.com
-TestCred: Jake1234567890!

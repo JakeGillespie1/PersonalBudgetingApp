@@ -19,3 +19,5 @@ budgeting-app/
 │       ├── services/
 │       └── App.tsx
 └── README.md
+
+Dev and Main Branches - Git Flow

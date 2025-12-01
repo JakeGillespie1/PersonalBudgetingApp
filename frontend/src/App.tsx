@@ -55,6 +55,36 @@ function AppContent() {
     setCurrentTab(newValue);
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if user is typing in an input field
+      const target = event.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        // Allow Ctrl+S to work in input fields
+        if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+          event.preventDefault();
+          // Save will be handled by the component
+          return;
+        }
+        // Don't handle other shortcuts when typing
+        return;
+      }
+
+      // Tab navigation shortcuts
+      if ((event.ctrlKey || event.metaKey) && event.key === '1') {
+        event.preventDefault();
+        setCurrentTab(0);
+      } else if ((event.ctrlKey || event.metaKey) && event.key === '2') {
+        event.preventDefault();
+        setCurrentTab(1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   if (loading) {
     return <Box sx={{ p: 4 }}>Loading...</Box>;
   }

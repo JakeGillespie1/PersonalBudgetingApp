@@ -34,6 +34,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import Fab from '@mui/material/Fab';
+import Zoom from '@mui/material/Zoom';
 import type { MonthlyBudget as MonthlyBudgetModel, Income, ExpenseCategory, BudgetTemplate, ExpenseTransaction } from '../types/budget';
 import { budgetAPI } from '../services/api';
 
@@ -77,6 +80,7 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
     date: string;
   }>({ description: '', amount: '', date: '' });
   const [addingTransaction, setAddingTransaction] = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const defaultExpenseCategories: ExpenseCategory[] = [
     {
@@ -114,6 +118,39 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
     loadBudget();
     loadTemplates();
   }, [selectedYear, selectedMonth]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Keyboard shortcut: Ctrl+S / Cmd+S to save
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        const target = event.target as HTMLElement;
+        // Only prevent default if not in an input/textarea (to allow normal save in those fields)
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
+          event.preventDefault();
+        }
+        // Always trigger save if there are unsaved changes
+        if (isDirty && !loading) {
+          void saveBudget();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDirty, loading]);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const loadBudget = async () => {
     setLoading(true);
@@ -627,7 +664,7 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
       </Typography>
 
       {/* Month/Year Selection */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <FormControl sx={{ minWidth: 120 }}>
           <InputLabel>Month</InputLabel>
           <Select
@@ -657,6 +694,23 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
             ))}
           </Select>
         </FormControl>
+
+        {(selectedMonth !== new Date().getMonth() + 1 || selectedYear !== new Date().getFullYear()) && (
+          <Button 
+            variant="outlined" 
+            size="small"
+            onClick={() => {
+              const currentDate = new Date();
+              handleUnsavedChangesPrompt(() => {
+                setSelectedMonth(currentDate.getMonth() + 1);
+                setSelectedYear(currentDate.getFullYear());
+              });
+            }}
+            title="Jump to current month"
+          >
+            Current Month
+          </Button>
+        )}
         
         <Button variant="contained" onClick={saveBudget} disabled={loading || !isDirty}>
           {isDirty ? 'Save Budget' : 'Budget Saved!'}
@@ -1246,6 +1300,24 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
           </Grid>
         </Grid>
       </Paper>
+
+      {/* Scroll to Top Button */}
+      <Zoom in={showScrollTop}>
+        <Fab
+          color="primary"
+          size="small"
+          aria-label="scroll back to top"
+          onClick={scrollToTop}
+          sx={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 1000,
+          }}
+        >
+          <KeyboardArrowUpIcon />
+        </Fab>
+      </Zoom>
     </Box>
   );
 };

@@ -32,7 +32,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import InfoIcon from '@mui/icons-material/Info';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { YearlySummary as YearlySummaryType, AccountValue, MonthlyBudget } from '../types/budget';
 import { budgetAPI } from '../services/api';
 
@@ -623,7 +623,7 @@ const YearlySummary: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip 
+                    <RechartsTooltip 
                       formatter={(value, name) => [formatCurrency(Number(value)), name]}
                       labelFormatter={(label) => `Month: ${label}`}
                     />
@@ -695,7 +695,7 @@ const YearlySummary: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip 
+                    <RechartsTooltip 
                       formatter={(value, name) => [formatCurrency(Number(value)), name]}
                       labelFormatter={(label) => `Month: ${label}`}
                     />
@@ -767,7 +767,7 @@ const YearlySummary: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
-                    <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Savings']} />
+                    <RechartsTooltip formatter={(value) => [formatCurrency(Number(value)), 'Savings']} />
                     <Line 
                       type="monotone" 
                       dataKey="savings" 
@@ -977,7 +977,7 @@ const YearlySummary: React.FC = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                       <YAxis />
-                      <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Total Net Worth']} />
+                      <RechartsTooltip formatter={(value) => [formatCurrency(Number(value)), 'Total Net Worth']} />
                 <Line 
                   type="monotone" 
                         dataKey="total" 

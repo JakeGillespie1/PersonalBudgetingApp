@@ -35,6 +35,8 @@ import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import InfoIcon from '@mui/icons-material/Info';
+import CloseIcon from '@mui/icons-material/Close';
 import Fab from '@mui/material/Fab';
 import Zoom from '@mui/material/Zoom';
 import type { MonthlyBudget as MonthlyBudgetModel, Income, ExpenseCategory, BudgetTemplate, ExpenseTransaction } from '../types/budget';
@@ -80,7 +82,10 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
     date: string;
   }>({ description: '', amount: '', date: '' });
   const [addingTransaction, setAddingTransaction] = useState<string | null>(null);
+  const [showAddExpenseDialog, setShowAddExpenseDialog] = useState(false);
+  const [expenseDialogContext, setExpenseDialogContext] = useState<{categoryIndex: number, itemIndex: number} | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showExpenseInstructions, setShowExpenseInstructions] = useState(true);
 
   const defaultExpenseCategories: ExpenseCategory[] = [
     {
@@ -323,6 +328,24 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
   const cancelAddingTransaction = () => {
     setAddingTransaction(null);
     setNewTransaction({ description: '', amount: '', date: '' });
+  };
+
+  const openAddExpenseDialog = (categoryIndex: number, itemIndex: number) => {
+    setExpenseDialogContext({ categoryIndex, itemIndex });
+    setNewTransaction({ description: '', amount: '', date: new Date().toISOString().split('T')[0] });
+    setShowAddExpenseDialog(true);
+  };
+
+  const closeAddExpenseDialog = () => {
+    setShowAddExpenseDialog(false);
+    setExpenseDialogContext(null);
+    setNewTransaction({ description: '', amount: '', date: '' });
+  };
+
+  const handleAddExpenseFromDialog = () => {
+    if (!expenseDialogContext) return;
+    addTransaction(expenseDialogContext.categoryIndex, expenseDialogContext.itemIndex, 'actual');
+    closeAddExpenseDialog();
   };
 
   const handleIncomeChange = (type: 'projected' | 'actual', field: 'regular' | 'extra', value: number) => {
@@ -896,6 +919,38 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
         </Grid>
       </Grid>
 
+      {/* Expense Entry Instructions */}
+      {showExpenseInstructions && (
+        <Paper sx={{ p: 2, mb: 3, backgroundColor: '#e3f2fd', position: 'relative' }}>
+          <IconButton
+            size="small"
+            onClick={() => setShowExpenseInstructions(false)}
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              color: 'text.secondary',
+            }}
+            title="Dismiss"
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, pr: 4 }}>
+            <InfoIcon sx={{ color: 'primary.main', mt: 0.5 }} />
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 'medium', mb: 0.5 }}>
+                How to Track Expenses
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Click the <strong>"Add"</strong> button next to any subcategory to record individual expenses. 
+                Each expense you add will automatically update the "Actual Cost" for that subcategory. 
+                You can add multiple transactions to track all your spending throughout the month.
+              </Typography>
+            </Box>
+          </Box>
+        </Paper>
+      )}
+
       {/* Expense Categories */}
       {currentBudget.projectedExpenses.map((projCategory, categoryIndex) => {
         const actualCategory = currentBudget.actualExpenses[categoryIndex];
@@ -915,7 +970,14 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Sub Category</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>Projected Cost</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actual Cost</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Actual Cost</Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'normal' }}>
+                        (from transactions)
+                      </Typography>
+                    </Box>
+                  </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>Difference</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                 </TableRow>
@@ -963,7 +1025,7 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
                             <Typography 
                               variant="body2" 
                               sx={{ 
-                                fontWeight: 'normal',
+                                fontWeight: 'bold',
                                 color: 'text.primary',
                                 minWidth: '100px',
                                 textAlign: 'right'
@@ -971,6 +1033,21 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
                             >
                               {formatCurrency(effectiveActualCost)}
                             </Typography>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => openAddExpenseDialog(categoryIndex, itemIndex)}
+                              title="Add expense"
+                              sx={{ 
+                                backgroundColor: 'primary.main',
+                                color: 'white',
+                                '&:hover': {
+                                  backgroundColor: 'primary.dark',
+                                }
+                              }}
+                            >
+                              <AddIcon fontSize="small" />
+                            </IconButton>
                             <IconButton 
                               size="small" 
                               onClick={() => toggleTransactionExpansion(categoryIndex, itemIndex, 'actual')}
@@ -1050,82 +1127,23 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
                               ))
                           ) : (
                             <TableRow sx={{ backgroundColor: '#f9f9f9' }}>
-                              <TableCell sx={{ pl: 12, fontSize: '0.875rem', color: 'text.secondary' }}>
-                                No transactions recorded yet.
+                              <TableCell colSpan={5} sx={{ pl: 12, fontSize: '0.875rem', color: 'text.secondary', textAlign: 'center', py: 3 }}>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                  <Typography variant="body2" color="text.secondary">
+                                    No transactions recorded yet.
+                                  </Typography>
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    startIcon={<AddIcon />}
+                                    onClick={() => openAddExpenseDialog(categoryIndex, itemIndex)}
+                                  >
+                                    Add First Expense
+                                  </Button>
+                                </Box>
                               </TableCell>
-                              <TableCell />
-                              <TableCell />
-                              <TableCell />
-                              <TableCell />
                             </TableRow>
                           )}
-                          
-                          {/* Add Transaction Form */}
-                          <TableRow sx={{ backgroundColor: '#e8f5e8' }}>
-                            <TableCell sx={{ pl: 12 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'medium', mr: 1 }}>
-                                  Add New Transaction:
-                                </Typography>
-                                <TextField
-                                  placeholder="Description"
-                                  value={newTransaction.description}
-                                  onChange={(e) => setNewTransaction(prev => ({ ...prev, description: e.target.value }))}
-                                  size="small"
-                                  sx={{ width: 140 }}
-                                />
-                                <TextField
-                                  type="date"
-                                  value={newTransaction.date}
-                                  onChange={(e) => setNewTransaction(prev => ({ ...prev, date: e.target.value }))}
-                                  size="small"
-                                  InputLabelProps={{ shrink: true }}
-                                />
-                              </Box>
-                            </TableCell>
-                            <TableCell />
-                            <TableCell align="right">
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <TextField
-                                  placeholder="Amount"
-                                  type="number"
-                                  value={newTransaction.amount}
-                                  onChange={(e) => setNewTransaction(prev => ({ ...prev, amount: e.target.value }))}
-                                  size="small"
-                                  sx={{ 
-                                    width: 100,
-                                    '& input[type="number"]': {
-                                      MozAppearance: 'textfield',
-                                    },
-                                    '& input[type="number"]::-webkit-outer-spin-button': {
-                                      WebkitAppearance: 'none',
-                                      margin: 0,
-                                    },
-                                    '& input[type="number"]::-webkit-inner-spin-button': {
-                                      WebkitAppearance: 'none',
-                                      margin: 0,
-                                    }
-                                  }}
-                                  inputProps={{ 
-                                    min: '0', 
-                                    step: '0.01',
-                                    style: { MozAppearance: 'textfield' }
-                                  }}
-                                />
-                                <Button 
-                                  size="small" 
-                                  variant="contained"
-                                  onClick={() => addTransaction(categoryIndex, itemIndex, 'actual')}
-                                  disabled={!newTransaction.description.trim() || !newTransaction.amount || parseFloat(newTransaction.amount) <= 0}
-                                  sx={{ minWidth: '60px', fontSize: '0.75rem' }}
-                                >
-                                  Add
-                                </Button>
-                              </Box>
-                            </TableCell>
-                            <TableCell />
-                            <TableCell />
-                          </TableRow>
                         </>
                       )}
                     </React.Fragment>
@@ -1279,6 +1297,76 @@ const MonthlyBudget: React.FC<MonthlyBudgetProps> = ({ budget, onBudgetChange })
           <Button onClick={handleDiscardChanges} color="warning">Discard Changes</Button>
           <Button variant="contained" onClick={handleSaveAndContinue}>
             Save & Continue
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Expense Dialog */}
+      <Dialog 
+        open={showAddExpenseDialog} 
+        onClose={closeAddExpenseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Add Expense</DialogTitle>
+        <DialogContent>
+          {expenseDialogContext && (
+            <Box sx={{ pt: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Category: <strong>{currentBudget.projectedExpenses[expenseDialogContext.categoryIndex]?.name}</strong> → 
+                Subcategory: <strong>{currentBudget.projectedExpenses[expenseDialogContext.categoryIndex]?.items[expenseDialogContext.itemIndex]?.subCategory}</strong>
+              </Typography>
+              <TextField
+                label="Description"
+                placeholder="e.g., Grocery shopping at Walmart"
+                value={newTransaction.description}
+                onChange={(e) => setNewTransaction(prev => ({ ...prev, description: e.target.value }))}
+                fullWidth
+                margin="normal"
+                autoFocus
+                required
+              />
+              <TextField
+                label="Amount"
+                type="number"
+                placeholder="0.00"
+                value={newTransaction.amount}
+                onChange={(e) => setNewTransaction(prev => ({ ...prev, amount: e.target.value }))}
+                fullWidth
+                margin="normal"
+                required
+                inputProps={{ 
+                  min: '0', 
+                  step: '0.01',
+                }}
+                InputProps={{
+                  startAdornment: <Typography sx={{ mr: 1, color: 'text.secondary' }}>$</Typography>
+                }}
+              />
+              <TextField
+                label="Date"
+                type="date"
+                value={newTransaction.date}
+                onChange={(e) => setNewTransaction(prev => ({ ...prev, date: e.target.value }))}
+                fullWidth
+                margin="normal"
+                required
+                InputLabelProps={{ shrink: true }}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                💡 Tip: You can add multiple transactions to track individual expenses. The total will be calculated automatically.
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeAddExpenseDialog}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleAddExpenseFromDialog}
+            disabled={!newTransaction.description.trim() || !newTransaction.amount || parseFloat(newTransaction.amount) <= 0 || !newTransaction.date}
+          >
+            Add Expense
           </Button>
         </DialogActions>
       </Dialog>

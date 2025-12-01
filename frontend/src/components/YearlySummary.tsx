@@ -25,11 +25,13 @@ import {
   DialogActions,
   Snackbar,
   Alert,
+  Tooltip,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import InfoIcon from '@mui/icons-material/Info';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { YearlySummary as YearlySummaryType, AccountValue, MonthlyBudget } from '../types/budget';
 import { budgetAPI } from '../services/api';
@@ -789,7 +791,16 @@ const YearlySummary: React.FC = () => {
             
                <Box sx={{ p: 2 }}>
                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                 <Typography variant="h6">Account Values</Typography>
+                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                   <Typography variant="h6">Account Values</Typography>
+                   <Tooltip 
+                     title="This represents the current balance/value of the account for each month, not the monthly contribution amount."
+                     arrow
+                     placement="right"
+                   >
+                     <InfoIcon sx={{ fontSize: '1.2rem', color: 'text.secondary', cursor: 'help' }} />
+                   </Tooltip>
+                 </Box>
                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                    <Button variant="contained" onClick={saveAllAccountChanges} disabled={loading || !isDirty}>
                      {isDirty ? 'Save Changes' : 'Values Saved!'}

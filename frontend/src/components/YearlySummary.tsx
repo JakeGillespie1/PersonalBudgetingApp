@@ -32,6 +32,9 @@ import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import InfoIcon from '@mui/icons-material/Info';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import Fab from '@mui/material/Fab';
+import Zoom from '@mui/material/Zoom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { YearlySummary as YearlySummaryType, AccountValue, MonthlyBudget } from '../types/budget';
 import { budgetAPI } from '../services/api';
@@ -52,6 +55,7 @@ const YearlySummary: React.FC = () => {
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [unsavedChangesOpen, setUnsavedChangesOpen] = useState(false);
   const [showAccountDetails, setShowAccountDetails] = useState(true);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     console.log('YearlySummary mounted or selectedYear changed:', selectedYear);
@@ -75,6 +79,39 @@ const YearlySummary: React.FC = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Keyboard shortcut: Ctrl+S / Cmd+S to save
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        const target = event.target as HTMLElement;
+        // Only prevent default if not in an input/textarea (to allow normal save in those fields)
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
+          event.preventDefault();
+        }
+        // Always trigger save if there are unsaved changes
+        if (isDirty && !loading) {
+          void saveAllAccountChanges();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDirty, loading]);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const generateYearlyDataFromMonthly = async (monthlyBudgets: MonthlyBudget[]) => {
     console.log('Processing:', monthlyBudgets.length, 'monthly budgets');
@@ -526,6 +563,20 @@ const YearlySummary: React.FC = () => {
             ))}
           </Select>
         </FormControl>
+        {selectedYear !== new Date().getFullYear() && (
+          <Button 
+            variant="outlined" 
+            size="small"
+            onClick={() => {
+              if (handleUnsavedChangesPrompt()) {
+                setSelectedYear(new Date().getFullYear());
+              }
+            }}
+            title="Jump to current year"
+          >
+            Current Year
+          </Button>
+        )}
           
           <Button 
             variant="outlined" 
@@ -1030,6 +1081,24 @@ const YearlySummary: React.FC = () => {
           {toastMsg}
         </Alert>
       </Snackbar>
+
+      {/* Scroll to Top Button */}
+      <Zoom in={showScrollTop}>
+        <Fab
+          color="primary"
+          size="small"
+          aria-label="scroll back to top"
+          onClick={scrollToTop}
+          sx={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            zIndex: 1000,
+          }}
+        >
+          <KeyboardArrowUpIcon />
+        </Fab>
+      </Zoom>
     </Box>
   );
 };

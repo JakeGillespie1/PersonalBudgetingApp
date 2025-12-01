@@ -7,7 +7,10 @@
         "dev": "concurrently \"npm run server\" \"npm run client\"",
         "server": "cd backend && npm run dev",
         "client": "cd frontend && npm run dev",
-        "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+        "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+        "deploy:frontend": "node deploy-frontend.js",
+        "deploy:frontend:ps1": "powershell -ExecutionPolicy Bypass -File deploy-frontend.ps1",
+        "deploy:frontend:sh": "bash deploy-frontend.sh"
     },
     "devDependencies": {
         "concurrently": "^8.2.2"
